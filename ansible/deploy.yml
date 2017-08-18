@@ -41,6 +41,7 @@
         - bootstrap/telemetry.sh
         - bootstrap/python-requirements.txt
         - bootstrap/python3-requirements.txt
+        - bootstrap/fairscheduler.xml
 
     - name: copy public EMR files
       include: render_and_copy_to_s3.yml file={{item}} permission="public-read"

@@ -188,6 +188,11 @@ sudo mkdir -p /mnt/var/log/spark
 sudo chmod a+rw /mnt/var/log/spark
 touch /mnt/var/log/spark/spark.log
 
+# Configure Spark fair scheduling
+mkdir $HOME/conf/
+POOL_ALLOCATION_FILE=$HOME/conf/fairscheduler.xml
+sudo aws s3 cp $TELEMETRY_CONF_BUCKET/bootstrap/fairscheduler.xml $POOL_ALLOCATION_FILE
+
 # Setup R environment
 cd /mnt
 wget -nc https://mran.microsoft.com/install/RRO-3.2.1-el6.x86_64.tar.gz
@@ -239,7 +244,16 @@ cat << EOF > /tmp/run_jupyter.sh
 
 while ! ((yum list spark-python | grep 'spark-python.noarch') && [ -f /usr/bin/pyspark ]); do sleep 60; done
 
-PYSPARK_DRIVER_PYTHON=jupyter PYSPARK_DRIVER_PYTHON_OPTS="notebook --no-browser" /usr/bin/pyspark
+export PYSPARK_DRIVER_PYTHON=jupyter
+export PYSPARK_DRIVER_PYTHON_OPTS="notebook --no-browser"
+/usr/bin/pyspark \
+    --master yarn \
+    --deploy-mode client \
+    --executor-memory $EXECUTOR_MEMORY \
+    --conf spark.yarn.executor.memoryOverhead=$MEMORY_OVERHEAD \
+    --conf spark.scheduler.mode=FAIR \
+    --conf spark.scheduler.allocation.file=$POOL_ALLOCATION_FILE \
+    --conf spark.scheduler.pool="fair"
 EOF
 chmod +x /tmp/run_jupyter.sh
 /tmp/run_jupyter.sh &

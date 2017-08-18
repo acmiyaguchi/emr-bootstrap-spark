@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!--
+    Bug 1390332 - Analysis clusters generally have a short lifespan and are
+    not used in a multi-tenant fashion. However, a resource pool under a
+    fair-scheduling policy enables sharing resources between short and long
+    running queries. See the related job scheduling documentation for
+    configuring pool properties.
+
+    https://spark.apache.org/docs/latest/job-scheduling.html#configuring-pool-properties
+-->
+<allocations>
+    <pool name="default">
+        <schedulingMode>FAIR</schedulingMode>
+        <weight>1</weight>
+        <minShare>2</minShare>
+    </pool>
+</allocations>
